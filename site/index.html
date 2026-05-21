@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>OpenRateVC Interactive Explorer</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <header class="app-header">
+      <div class="brand-block">
+        <div class="eyebrow">OpenRateVC Extract</div>
+        <h1>Investor Directory</h1>
+      </div>
+      <nav class="tabs" aria-label="Primary">
+        <button class="tab is-active" data-route="directory" type="button">Directory</button>
+        <button class="tab" data-route="organizations" type="button">Organizations</button>
+        <button class="tab" data-route="apk" type="button">APK Explorer</button>
+      </nav>
+    </header>
+
+    <main class="app-shell">
+      <section class="status-grid" id="summaryCards" aria-label="Project summary"></section>
+
+      <section class="view is-active" id="directoryView" aria-labelledby="directoryTitle">
+        <aside class="filter-panel">
+          <div class="panel-header">
+            <h2 id="directoryTitle">Directory</h2>
+            <button id="resetFilters" class="ghost-button" type="button">Reset</button>
+          </div>
+
+          <label class="field">
+            <span>Search</span>
+            <input id="searchInput" type="search" autocomplete="off" placeholder="Name, fund, region, tag">
+          </label>
+
+          <label class="field">
+            <span>Region</span>
+            <select id="regionFilter"></select>
+          </label>
+
+          <label class="field">
+            <span>Organization kind</span>
+            <select id="kindFilter"></select>
+          </label>
+
+          <label class="field">
+            <span>Rating tier</span>
+            <select id="tierFilter"></select>
+          </label>
+
+          <label class="field">
+            <span>Minimum stars</span>
+            <select id="starsFilter"></select>
+          </label>
+
+          <label class="field">
+            <span>Tag</span>
+            <select id="tagFilter"></select>
+          </label>
+
+          <label class="field">
+            <span>Sort</span>
+            <select id="sortSelect">
+              <option value="score-desc">Score high to low</option>
+              <option value="score-asc">Score low to high</option>
+              <option value="name">Name</option>
+              <option value="organization">Organization</option>
+              <option value="sequence">Original order</option>
+            </select>
+          </label>
+        </aside>
+
+        <div class="results-panel">
+          <div class="result-toolbar">
+            <div>
+              <h2>Investor matches</h2>
+              <p id="resultSummary" class="muted">Loading directory...</p>
+            </div>
+            <div class="pager" id="topPager"></div>
+          </div>
+          <div id="directoryStatus" class="notice" hidden></div>
+          <div class="investor-grid" id="investorGrid"></div>
+          <div class="pager bottom" id="bottomPager"></div>
+        </div>
+      </section>
+
+      <section class="view" id="detailView" aria-labelledby="detailTitle">
+        <button class="back-button" id="backToDirectory" type="button">Back to directory</button>
+        <div id="detailStatus" class="notice" hidden></div>
+        <article class="detail-panel" id="detailPanel">
+          <h2 id="detailTitle">Investor detail</h2>
+        </article>
+      </section>
+
+      <section class="view" id="organizationsView" aria-labelledby="organizationsTitle">
+        <div class="section-header">
+          <div>
+            <h2 id="organizationsTitle">Organizations</h2>
+            <p id="organizationSummary" class="muted">Browse extracted organization records.</p>
+          </div>
+          <div class="inline-controls">
+            <input id="organizationSearch" type="search" autocomplete="off" placeholder="Search organizations">
+            <select id="organizationKindFilter"></select>
+          </div>
+        </div>
+        <div id="organizationStatus" class="notice" hidden></div>
+        <div class="organization-list" id="organizationList"></div>
+      </section>
+
+      <section class="view" id="apkView" aria-labelledby="apkTitle">
+        <div class="section-header">
+          <div>
+            <h2 id="apkTitle">APK Explorer</h2>
+            <p class="muted">Manifest, assets, source summary, and decompile notes.</p>
+          </div>
+        </div>
+        <div id="apkStatus" class="notice" hidden></div>
+        <div class="apk-grid" id="apkGrid"></div>
+      </section>
+    </main>
+
+    <noscript>
+      <p class="notice">This explorer needs JavaScript enabled to load the extracted JSON assets.</p>
+    </noscript>
+
+    <script type="module" src="app.js"></script>
+  </body>
+</html>
