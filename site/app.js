@@ -367,6 +367,29 @@ function renderInvestorCard(investor) {
   `;
 }
 
+function wireTagRollers(root) {
+  root.querySelectorAll(".card-tags").forEach((row) => {
+    const refresh = () => {
+      const overflow = row.scrollWidth - row.clientWidth;
+      row.classList.toggle("is-rollable", overflow > 1);
+      if (overflow <= 1) row.scrollLeft = 0;
+    };
+
+    row.addEventListener("pointerenter", refresh);
+    row.addEventListener("pointermove", (event) => {
+      const overflow = row.scrollWidth - row.clientWidth;
+      if (overflow <= 1) return;
+      const bounds = row.getBoundingClientRect();
+      const ratio = Math.max(0, Math.min(1, (event.clientX - bounds.left) / bounds.width));
+      row.scrollLeft = overflow * ratio;
+    });
+    row.addEventListener("pointerleave", () => {
+      row.scrollTo({ left: 0, behavior: "smooth" });
+    });
+    refresh();
+  });
+}
+
 async function ensureDirectoryFilters(investors) {
   if (dom.regionFilter.dataset.ready) return;
   const options = buildFilterOptions(investors);
@@ -392,6 +415,7 @@ async function renderDirectory() {
       ? `Showing ${pageInfo.start.toLocaleString()}-${pageInfo.end.toLocaleString()} of ${pageInfo.total.toLocaleString()} matches.`
       : "No investors match these filters.";
     dom.investorGrid.innerHTML = pageInfo.items.map(renderInvestorCard).join("");
+    wireTagRollers(dom.investorGrid);
     dom.investorGrid.querySelectorAll("[data-investor-id]").forEach((button) => {
       button.addEventListener("click", () => {
         state.route = "investor";
