@@ -14,8 +14,7 @@ import {
 const DATA = {
   investors: "data/investors.json",
   organizations: "data/organizations.json",
-  reports: "data/investor-reports.json",
-  summary: "data/source-summary.json",
+  reports: "data/reports/",
 };
 
 const state = {
@@ -43,9 +42,7 @@ const cache = {
   investorById: null,
   organizations: null,
   organizationById: null,
-  reports: null,
-  reportById: null,
-  summary: null,
+  reports: new Map(),
 };
 
 const dom = {};
@@ -66,19 +63,6 @@ function escapeHtml(value) {
 function compact(value, fallback = "Unknown") {
   const text = String(value ?? "").trim();
   return text || fallback;
-}
-
-function formatBytes(bytes) {
-  const value = Number(bytes);
-  if (!Number.isFinite(value)) return "n/a";
-  const units = ["B", "KB", "MB", "GB"];
-  let size = value;
-  let unit = 0;
-  while (size >= 1024 && unit < units.length - 1) {
-    size /= 1024;
-    unit += 1;
-  }
-  return `${size.toFixed(unit === 0 ? 0 : 1)} ${units[unit]}`;
 }
 
 async function loadJson(name) {
@@ -110,19 +94,23 @@ async function loadOrganizations() {
   return cache.organizations;
 }
 
-async function loadReports() {
-  if (!cache.reports) {
-    cache.reports = await loadJson("reports");
-    cache.reportById = indexById(cache.reports);
+async function loadReport(id) {
+  const key = String(id || "");
+  if (!key) return null;
+  if (cache.reports.has(key)) return cache.reports.get(key);
+  try {
+    const response = await fetch(`${DATA.reports}${encodeURIComponent(key)}.json`);
+    if (!response.ok) {
+      if (response.status === 404) return null;
+      throw new Error(`${response.status} ${response.statusText}`);
+    }
+    const report = await response.json();
+    cache.reports.set(key, report);
+    return report;
+  } catch (error) {
+    const fileHint = location.protocol === "file:" ? " Serve the site with a local static server instead of opening index.html directly." : "";
+    throw new Error(`Unable to load report ${key}.${fileHint} ${error.message}`);
   }
-  return cache.reports;
-}
-
-async function loadSourceSummary() {
-  if (!cache.summary) {
-    cache.summary = await loadJson("summary");
-  }
-  return cache.summary;
 }
 
 function setNotice(element, message = "", type = "info") {
@@ -145,7 +133,6 @@ function setActiveRoute(route) {
   dom.directoryView.classList.toggle("is-active", route === "directory");
   dom.detailView.classList.toggle("is-active", route === "investor");
   dom.organizationsView.classList.toggle("is-active", route === "organizations");
-  dom.apkView.classList.toggle("is-active", route === "apk");
 }
 
 function paramsFromFilters(params, filters) {
@@ -165,7 +152,6 @@ function buildDirectoryHash() {
 function updateHash(replace = false) {
   let next = "#directory";
   if (state.route === "organizations") next = "#organizations";
-  if (state.route === "apk") next = "#apk";
   if (state.route === "investor") next = `#investor?id=${encodeURIComponent(state.investorId)}`;
   if (state.route === "directory") next = buildDirectoryHash();
   if (location.hash === next) return;
@@ -183,7 +169,7 @@ function parseHash() {
   const params = new URLSearchParams(query);
 
   state.route = route || "directory";
-  if (!["directory", "investor", "organizations", "apk"].includes(state.route)) {
+  if (!["directory", "investor", "organizations"].includes(state.route)) {
     state.route = "directory";
   }
   state.investorId = params.get("id") || state.investorId || "";
@@ -217,14 +203,13 @@ function setOptions(select, values, placeholder, formatter = (value) => value) {
   select.value = current;
 }
 
-function renderSummaryCards(summary) {
-  const counts = summary?.counts || {};
-  const manifest = summary?.manifest || {};
+function renderSummaryCards(investors = []) {
+  const organizationCount = new Set(investors.map((item) => item.organizationId || item.organizationName).filter(Boolean)).size;
   const metrics = [
-    ["Investors", counts.investors?.toLocaleString() || "3,105"],
-    ["Organizations", counts.organizations?.toLocaleString() || "1,706"],
-    ["APK version", manifest.versionName || "0.1.1"],
-    ["Source files", counts.appPackageJavaFiles || "33"],
+    ["Investors", investors.length.toLocaleString()],
+    ["Pages", Math.ceil(investors.length / state.pageSize).toLocaleString()],
+    ["Page size", state.pageSize.toLocaleString()],
+    ["Organizations", organizationCount.toLocaleString()],
   ];
   dom.summaryCards.innerHTML = metrics
     .map(([label, value]) => `
@@ -407,6 +392,7 @@ async function renderDirectory() {
   setNotice(dom.directoryStatus, "Loading investor data...");
   try {
     const investors = await loadInvestors();
+    renderSummaryCards(investors);
     await ensureDirectoryFilters(investors);
     const filtered = filterInvestors(investors, state.filters);
     const pageInfo = paginate(filtered, state.page, state.pageSize);
@@ -453,8 +439,7 @@ async function renderDetail() {
   setNotice(dom.detailStatus, "Loading detailed report...");
   dom.detailPanel.innerHTML = `<h2 id="detailTitle">Investor detail</h2>`;
   try {
-    await loadReports();
-    const report = cache.reportById.get(state.investorId);
+    const report = await loadReport(state.investorId);
     if (!report) {
       setNotice(dom.detailStatus, `No detailed report found for ${state.investorId}.`, "error");
       return;
@@ -545,82 +530,11 @@ async function renderOrganizations() {
   }
 }
 
-function manifestTable(manifest) {
-  const rows = [
-    ["Package", manifest.package],
-    ["Version", `${manifest.versionName} (${manifest.versionCode})`],
-    ["Compile SDK", manifest.compileSdk],
-    ["Min / target SDK", `${manifest.minSdk} / ${manifest.targetSdk}`],
-    ["Label", manifest.label],
-    ["Main activity", manifest.mainActivity],
-    ["Orientation", manifest.screenOrientation],
-  ];
-  return `<table class="table-like"><tbody>${rows.map(([key, value]) => `
-    <tr><th>${escapeHtml(key)}</th><td><code>${escapeHtml(value)}</code></td></tr>
-  `).join("")}</tbody></table>`;
-}
-
-async function renderApkExplorer() {
-  setActiveRoute("apk");
-  setNotice(dom.apkStatus, "Loading APK summary...");
-  try {
-    const summary = await loadSourceSummary();
-    dom.apkGrid.innerHTML = `
-      <section class="source-card">
-        <h3>Manifest</h3>
-        ${manifestTable(summary.manifest || {})}
-      </section>
-      <section class="source-card">
-        <h3>Data assets</h3>
-        ${(summary.assets || []).map((asset) => `
-          <div class="asset-row">
-            <div><code>${escapeHtml(asset.name)}</code><p class="muted">${escapeHtml(asset.description)}</p></div>
-            <strong>${escapeHtml(formatBytes(asset.sizeBytes))}</strong>
-          </div>
-        `).join("")}
-      </section>
-      <section class="source-card">
-        <h3>Important classes</h3>
-        ${(summary.importantClasses || []).map((item) => `
-          <div class="asset-row">
-            <code>${escapeHtml(item.file)}</code>
-            <span>${escapeHtml(item.description)}</span>
-          </div>
-        `).join("")}
-      </section>
-      <section class="source-card">
-        <h3>Native library</h3>
-        ${(summary.nativeLibraries || []).map((item) => `
-          <p><code>${escapeHtml(item.path)}</code></p>
-          <p>${escapeHtml(item.description)}</p>
-          <p class="muted">${escapeHtml(formatBytes(item.sizeBytes))}</p>
-        `).join("")}
-      </section>
-      <section class="source-card">
-        <h3>Source files</h3>
-        <div class="file-list">
-          ${(summary.sourceFiles || []).map((file) => `<div class="file-row"><code>${escapeHtml(file)}</code></div>`).join("")}
-        </div>
-      </section>
-      <section class="source-card">
-        <h3>Decompile notes</h3>
-        <ul>
-          ${(summary.decompileCaveats || []).map((note) => `<li>${escapeHtml(note)}</li>`).join("")}
-        </ul>
-      </section>
-    `;
-    setNotice(dom.apkStatus);
-  } catch (error) {
-    setNotice(dom.apkStatus, error.message, "error");
-  }
-}
-
 async function render() {
   parseHash();
   syncControlsFromState();
   if (state.route === "investor") return renderDetail();
   if (state.route === "organizations") return renderOrganizations();
-  if (state.route === "apk") return renderApkExplorer();
   return renderDirectory();
 }
 
@@ -686,7 +600,6 @@ function cacheDom() {
     directoryView: $("#directoryView"),
     detailView: $("#detailView"),
     organizationsView: $("#organizationsView"),
-    apkView: $("#apkView"),
     resetFilters: $("#resetFilters"),
     searchInput: $("#searchInput"),
     regionFilter: $("#regionFilter"),
@@ -708,8 +621,6 @@ function cacheDom() {
     organizationSummary: $("#organizationSummary"),
     organizationStatus: $("#organizationStatus"),
     organizationList: $("#organizationList"),
-    apkStatus: $("#apkStatus"),
-    apkGrid: $("#apkGrid"),
   });
 }
 
@@ -722,11 +633,7 @@ async function init() {
   setOptions(dom.starsFilter, [], "Any stars");
   setOptions(dom.tagFilter, [], "Any tag");
   setOptions(dom.organizationKindFilter, [], "All kinds");
-  try {
-    renderSummaryCards(await loadSourceSummary());
-  } catch (error) {
-    dom.summaryCards.innerHTML = `<article class="metric-card"><div class="label">Status</div><div class="metric-value">Metadata unavailable</div></article>`;
-  }
+  dom.summaryCards.innerHTML = `<article class="metric-card"><div class="label">Status</div><div class="metric-value">Loading</div></article>`;
   if (!location.hash) history.replaceState(null, "", "#directory");
   render();
 }

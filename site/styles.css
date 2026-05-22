@@ -154,7 +154,6 @@ button {
 .filter-panel,
 .results-panel,
 .detail-panel,
-.source-card,
 .organization-card {
   background: var(--panel);
   border: 1px solid var(--line);
@@ -578,15 +577,13 @@ button:focus-visible {
   padding-bottom: 18px;
 }
 
-.detail-grid,
-.apk-grid {
+.detail-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 14px;
 }
 
-.detail-section,
-.source-card {
+.detail-section {
   min-width: 0;
   padding: 16px;
   background:
@@ -598,7 +595,6 @@ button:focus-visible {
 }
 
 .detail-section h3,
-.source-card h3,
 .organization-card h3 {
   margin: 0 0 10px;
   font-size: 1rem;
@@ -608,8 +604,7 @@ button:focus-visible {
   white-space: pre-wrap;
 }
 
-.source-list,
-.file-list {
+.source-list {
   display: grid;
   gap: 8px;
   max-height: 420px;
@@ -625,20 +620,6 @@ button:focus-visible {
 
 .source-list a:hover {
   color: #ffffff;
-}
-
-.file-row,
-.asset-row {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  border-bottom: 1px solid var(--line);
-  padding: 8px 0;
-}
-
-.file-row code,
-.asset-row code {
-  overflow-wrap: anywhere;
 }
 
 code {
@@ -682,24 +663,6 @@ code {
   box-shadow: 0 0 28px rgba(45, 212, 191, 0.14);
 }
 
-.table-like {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.table-like th,
-.table-like td {
-  border-bottom: 1px solid var(--line);
-  padding: 8px 0;
-  text-align: left;
-  vertical-align: top;
-}
-
-.table-like th {
-  color: var(--muted);
-  font-weight: 760;
-}
-
 ::-webkit-scrollbar {
   width: 11px;
   height: 11px;
@@ -731,7 +694,6 @@ code {
   .status-grid,
   #directoryView.is-active,
   .detail-grid,
-  .apk-grid,
   .inline-controls {
     grid-template-columns: 1fr;
   }
@@ -778,8 +740,4 @@ code {
     margin: 0 auto;
   }
 
-  .file-row,
-  .asset-row {
-    display: grid;
-  }
 }
