@@ -1,3 +1,4 @@
+source code from https://github.com/weiyangzen/OpenRateVC
 # OpenRateVC
 
 OpenRateVC 是一个面向创业者的投资人筛选工具，目标是帮助创始人在有限时间内更快地从公开信息中筛选潜在匹配的 VC、基金和投资人。
