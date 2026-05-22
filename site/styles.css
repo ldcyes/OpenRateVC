@@ -330,6 +330,20 @@ button:focus-visible {
   gap: 6px;
 }
 
+.card-tags {
+  flex-wrap: nowrap;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 2px;
+  scrollbar-width: none;
+  white-space: nowrap;
+}
+
+.card-tags::-webkit-scrollbar {
+  display: none;
+}
+
 .tag,
 .tier,
 .star-text {
@@ -347,6 +361,12 @@ button:focus-visible {
   overflow-wrap: anywhere;
 }
 
+.card-tags .tag {
+  flex: 0 0 auto;
+  overflow-wrap: normal;
+  white-space: nowrap;
+}
+
 .star-text {
   color: var(--warning);
   background: rgba(246, 195, 106, 0.11);
@@ -357,6 +377,130 @@ button:focus-visible {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
+}
+
+.skill-radar {
+  min-width: 0;
+  border: 1px solid rgba(45, 212, 191, 0.24);
+  border-radius: 8px;
+  background:
+    radial-gradient(circle at 50% 48%, rgba(45, 212, 191, 0.16), transparent 64%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.032), rgba(5, 11, 13, 0.38));
+  box-shadow: inset 0 0 32px rgba(45, 212, 191, 0.06);
+}
+
+.skill-radar.is-card {
+  display: grid;
+  grid-template-columns: 128px 1fr;
+  gap: 10px;
+  align-items: center;
+  padding: 8px 10px;
+}
+
+.skill-radar.is-detail {
+  display: grid;
+  grid-template-columns: minmax(178px, 220px) 1fr;
+  gap: 14px;
+  align-items: center;
+  margin-bottom: 12px;
+  padding: 12px;
+}
+
+.skill-radar svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  min-width: 0;
+}
+
+.radar-grid,
+.radar-axis,
+.radar-stroke {
+  vector-effect: non-scaling-stroke;
+}
+
+.radar-grid {
+  fill: rgba(45, 212, 191, 0.018);
+  stroke: rgba(132, 165, 165, 0.3);
+  stroke-width: 1;
+}
+
+.radar-axis {
+  stroke: rgba(132, 165, 165, 0.22);
+  stroke-width: 1;
+}
+
+.radar-fill {
+  fill: rgba(45, 212, 191, 0.34);
+  stroke: none;
+  filter: drop-shadow(0 0 10px rgba(45, 212, 191, 0.24));
+}
+
+.radar-stroke {
+  fill: none;
+  stroke: #5eead4;
+  stroke-linejoin: round;
+  stroke-width: 2;
+}
+
+.radar-label {
+  fill: #a9bcba;
+  font-size: 8px;
+  font-weight: 780;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.radar-score-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-width: 0;
+}
+
+.skill-radar.is-card .radar-score-list {
+  max-height: 84px;
+  overflow: hidden;
+}
+
+.skill-radar.is-card .radar-score {
+  min-width: 58px;
+  min-height: 22px;
+  gap: 5px;
+  padding: 2px 5px;
+  font-size: 0.68rem;
+}
+
+.radar-score {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 7px;
+  min-width: 68px;
+  max-width: 100%;
+  min-height: 24px;
+  border: 1px solid rgba(94, 234, 212, 0.14);
+  border-radius: 8px;
+  background: rgba(3, 19, 17, 0.46);
+  color: #dffcf8;
+  padding: 3px 7px;
+  font-size: 0.74rem;
+  font-weight: 760;
+}
+
+.radar-score strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.radar-score span {
+  color: var(--accent-dark);
+  font-variant-numeric: tabular-nums;
+}
+
+.dimension-metrics {
+  margin-top: 10px;
 }
 
 .mini-metric {
@@ -605,6 +749,19 @@ code {
 
   .key-metrics {
     grid-template-columns: 1fr;
+  }
+
+  .skill-radar.is-card {
+    grid-template-columns: 122px 1fr;
+  }
+
+  .skill-radar.is-detail {
+    grid-template-columns: 1fr;
+  }
+
+  .skill-radar.is-detail svg {
+    max-width: 220px;
+    margin: 0 auto;
   }
 
   .file-row,

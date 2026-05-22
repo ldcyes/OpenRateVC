@@ -6,6 +6,7 @@ import {
   buildFilterOptions,
   indexById,
   formatStars,
+  scoreToPercent,
 } from "./core.mjs";
 
 const investors = [
@@ -110,4 +111,11 @@ test("indexById and formatStars handle common display cases", () => {
   assert.equal(byId.get("b").name, "Ben Ortiz");
   assert.equal(formatStars(3), "★★★☆☆");
   assert.equal(formatStars(undefined), "☆☆☆☆☆");
+});
+
+test("scoreToPercent scales four-point dimension scores and clamps invalid values", () => {
+  assert.equal(scoreToPercent(2), 50);
+  assert.equal(scoreToPercent(4.8), 100);
+  assert.equal(scoreToPercent(-1), 0);
+  assert.equal(scoreToPercent(undefined), 0);
 });

@@ -7,6 +7,7 @@ import {
   indexById,
   normalizeTier,
   paginate,
+  scoreToPercent,
   sectionEntries,
 } from "./core.mjs";
 
@@ -260,8 +261,90 @@ function renderMetricList(metrics = [], limit = 2) {
   `).join("");
 }
 
+function radarPoint(index, radius, total = 6, cx = 84, cy = 78) {
+  const angle = ((-90 + (360 / total) * index) * Math.PI) / 180;
+  return {
+    x: cx + Math.cos(angle) * radius,
+    y: cy + Math.sin(angle) * radius,
+  };
+}
+
+function pointList(points) {
+  return points.map((point) => `${point.x.toFixed(1)},${point.y.toFixed(1)}`).join(" ");
+}
+
+function shortRadarLabel(value) {
+  const text = compact(value, "Skill");
+  const aliases = {
+    drypowder: "Powder",
+    sectorfit: "Sector",
+    decisionpower: "Decision",
+    activity: "Activity",
+    leadrole: "Lead",
+    risk: "Risk",
+  };
+  const alias = aliases[text.toLowerCase().replace(/\s+/g, "")];
+  if (alias) return alias;
+  if (text.length <= 10) return text;
+  const initials = text
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((word) => word[0])
+    .join("");
+  return initials.length > 1 ? initials.slice(0, 4).toUpperCase() : text.slice(0, 8);
+}
+
+function renderSkillRadar(dimensions = [], mode = "card") {
+  const skills = dimensions.slice(0, 6);
+  if (!skills.length) return "";
+  const axes = [...skills];
+  while (axes.length < 6) axes.push({ label: "", score: 0 });
+
+  const radius = 48;
+  const rings = [1, 0.75, 0.5, 0.25]
+    .map((scale) => `<polygon class="radar-grid" points="${pointList(axes.map((_, index) => radarPoint(index, radius * scale)))}"></polygon>`)
+    .join("");
+  const spokes = axes
+    .map((_, index) => {
+      const end = radarPoint(index, radius);
+      return `<line class="radar-axis" x1="84" y1="78" x2="${end.x.toFixed(1)}" y2="${end.y.toFixed(1)}"></line>`;
+    })
+    .join("");
+  const values = pointList(axes.map((dimension, index) => radarPoint(index, radius * (scoreToPercent(dimension.score) / 100))));
+  const labels = axes
+    .map((dimension, index) => {
+      if (!dimension.label && !dimension.key) return "";
+      const labelPoint = radarPoint(index, radius + 17);
+      return `<text class="radar-label" x="${labelPoint.x.toFixed(1)}" y="${labelPoint.y.toFixed(1)}" text-anchor="middle" dominant-baseline="middle">${escapeHtml(shortRadarLabel(dimension.label || dimension.key))}</text>`;
+    })
+    .join("");
+  const scoreItems = skills
+    .map((dimension) => `
+      <span class="radar-score">
+        <strong>${escapeHtml(shortRadarLabel(dimension.label || dimension.key))}</strong>
+        <span>${escapeHtml(formatScore(dimension.score))}</span>
+      </span>
+    `)
+    .join("");
+
+  return `
+    <div class="skill-radar is-${escapeHtml(mode)}" aria-label="Six-dimension person skill radar">
+      <svg viewBox="0 0 168 156" role="img" aria-label="Six-dimension person skill radar">
+        <title>Six-dimension person skill radar</title>
+        ${rings}
+        ${spokes}
+        <polygon class="radar-fill" points="${values}"></polygon>
+        <polygon class="radar-stroke" points="${values}"></polygon>
+        ${labels}
+      </svg>
+      <div class="radar-score-list">${scoreItems}</div>
+    </div>
+  `;
+}
+
 function renderInvestorCard(investor) {
   const tags = (investor.tags || []).slice(0, 5).map((tag) => `<span class="tag">${escapeHtml(tag)}</span>`).join("");
+  const skills = renderSkillRadar(investor.dimensions || investor.keyMetrics || [], "card");
   return `
     <article class="investor-card">
       <header>
@@ -277,8 +360,8 @@ function renderInvestorCard(investor) {
       </div>
       <p class="muted">${escapeHtml(compact(investor.organizationName))} · ${escapeHtml(compact(investor.region))}</p>
       <p class="summary">${escapeHtml(investor.summary || investor.actionRecommendation || "No summary available.")}</p>
-      <div class="key-metrics">${renderMetricList(investor.keyMetrics || investor.dimensions || [])}</div>
-      <div class="tag-row">${tags}</div>
+      ${skills || `<div class="key-metrics">${renderMetricList(investor.keyMetrics || investor.dimensions || [])}</div>`}
+      <div class="tag-row card-tags">${tags}</div>
       <button class="card-action" type="button" data-investor-id="${escapeHtml(investor.id)}">Open report</button>
     </article>
   `;
@@ -383,7 +466,8 @@ async function renderDetail() {
         </section>
         <section class="detail-section">
           <h3>Dimensions</h3>
-          <div class="key-metrics">${(report.dimensions || []).map(renderDimension).join("")}</div>
+          ${renderSkillRadar(report.dimensions || [], "detail")}
+          <div class="key-metrics dimension-metrics">${(report.dimensions || []).map(renderDimension).join("")}</div>
         </section>
         <section class="detail-section">
           <h3>Key metrics</h3>

@@ -57,6 +57,13 @@ export function formatScore(value) {
   return Number.isFinite(number) ? number.toFixed(2) : "n/a";
 }
 
+export function scoreToPercent(value, maxScore = 4) {
+  const number = Number(value);
+  const max = Number(maxScore);
+  if (!Number.isFinite(number) || !Number.isFinite(max) || max <= 0) return 0;
+  return Math.max(0, Math.min(100, (number / max) * 100));
+}
+
 export function buildFilterOptions(investors = []) {
   return {
     regions: uniqueSorted(investors.map((item) => item.region)),
