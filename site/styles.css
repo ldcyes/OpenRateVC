@@ -1,15 +1,22 @@
 :root {
-  --bg: #f5f7f8;
-  --panel: #ffffff;
-  --panel-soft: #eef3f5;
-  --line: #d7dee2;
-  --text: #182226;
-  --muted: #617078;
-  --accent: #0f766e;
-  --accent-dark: #115e59;
-  --accent-soft: #d8efeb;
-  --warning: #9a5b00;
-  --shadow: 0 12px 30px rgba(15, 35, 42, 0.08);
+  color-scheme: dark;
+  --bg: #080d10;
+  --bg-2: #0c1417;
+  --panel: rgba(17, 27, 31, 0.9);
+  --panel-strong: rgba(22, 35, 40, 0.96);
+  --panel-soft: rgba(37, 57, 61, 0.78);
+  --line: rgba(132, 165, 165, 0.22);
+  --line-strong: rgba(117, 228, 214, 0.38);
+  --text: #edf7f5;
+  --muted: #99aaa9;
+  --accent: #2dd4bf;
+  --accent-dark: #5eead4;
+  --accent-soft: rgba(45, 212, 191, 0.14);
+  --warning: #f6c36a;
+  --danger: #fb7185;
+  --violet: #a78bfa;
+  --shadow: 0 24px 60px rgba(0, 0, 0, 0.42);
+  --inner-glow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 * {
@@ -18,10 +25,31 @@
 
 body {
   margin: 0;
-  background: var(--bg);
+  min-height: 100vh;
+  background:
+    linear-gradient(135deg, rgba(20, 184, 166, 0.09) 0%, transparent 32%),
+    linear-gradient(315deg, rgba(167, 139, 250, 0.09) 0%, transparent 36%),
+    linear-gradient(180deg, var(--bg-2) 0%, var(--bg) 54%, #050809 100%);
   color: var(--text);
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   line-height: 1.5;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.65), transparent 86%);
+}
+
+::selection {
+  background: rgba(45, 212, 191, 0.35);
 }
 
 button,
@@ -43,9 +71,10 @@ button {
   justify-content: space-between;
   gap: 24px;
   padding: 18px 28px;
-  background: rgba(255, 255, 255, 0.94);
+  background: rgba(8, 13, 16, 0.86);
   border-bottom: 1px solid var(--line);
-  backdrop-filter: blur(14px);
+  box-shadow: 0 10px 34px rgba(0, 0, 0, 0.32);
+  backdrop-filter: blur(18px);
 }
 
 .brand-block h1,
@@ -59,6 +88,8 @@ button {
 
 .brand-block h1 {
   font-size: clamp(1.35rem, 2vw, 1.9rem);
+  color: #f8fffd;
+  text-shadow: 0 0 28px rgba(45, 212, 191, 0.18);
 }
 
 .eyebrow,
@@ -84,10 +115,12 @@ button {
   min-height: 38px;
   border: 1px solid var(--line);
   border-radius: 8px;
-  background: var(--panel);
+  background: rgba(14, 24, 28, 0.88);
   color: var(--text);
   padding: 8px 12px;
   font-weight: 700;
+  box-shadow: var(--inner-glow);
+  transition: border-color 160ms ease, background 160ms ease, color 160ms ease, transform 160ms ease;
 }
 
 .tab.is-active,
@@ -96,8 +129,9 @@ button {
 .back-button:hover,
 .ghost-button:hover {
   border-color: var(--accent);
-  background: var(--accent);
-  color: white;
+  background: linear-gradient(135deg, rgba(45, 212, 191, 0.95), rgba(20, 184, 166, 0.78));
+  color: #031311;
+  transform: translateY(-1px);
 }
 
 .app-shell {
@@ -123,16 +157,30 @@ button {
   border: 1px solid var(--line);
   border-radius: 8px;
   box-shadow: var(--shadow);
+  backdrop-filter: blur(16px);
+  box-shadow: var(--shadow), var(--inner-glow);
 }
 
 .metric-card {
   padding: 14px;
+  position: relative;
+  overflow: hidden;
+}
+
+.metric-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent), var(--violet), var(--warning));
+  opacity: 0.82;
 }
 
 .metric-value {
   margin-top: 4px;
   font-size: 1.35rem;
   font-weight: 820;
+  color: #ffffff;
 }
 
 .muted {
@@ -187,15 +235,22 @@ select {
   min-height: 40px;
   border: 1px solid var(--line);
   border-radius: 8px;
-  background: #fff;
+  background: rgba(5, 11, 13, 0.78);
   color: var(--text);
   padding: 8px 10px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.015);
+}
+
+select option {
+  background: #101a1e;
+  color: var(--text);
 }
 
 input:focus,
 select:focus,
 button:focus-visible {
-  outline: 3px solid var(--accent-soft);
+  border-color: var(--line-strong);
+  outline: 3px solid rgba(45, 212, 191, 0.16);
   outline-offset: 1px;
 }
 
@@ -220,10 +275,19 @@ button:focus-visible {
   gap: 12px;
   min-height: 260px;
   padding: 16px;
-  background: var(--panel);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.035), transparent 44%),
+    var(--panel);
   border: 1px solid var(--line);
   border-radius: 8px;
-  box-shadow: 0 8px 18px rgba(20, 37, 44, 0.05);
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.28), var(--inner-glow);
+  transition: border-color 170ms ease, transform 170ms ease, box-shadow 170ms ease;
+}
+
+.investor-card:hover {
+  border-color: var(--line-strong);
+  box-shadow: 0 22px 56px rgba(0, 0, 0, 0.36), 0 0 0 1px rgba(45, 212, 191, 0.08);
+  transform: translateY(-2px);
 }
 
 .investor-card header {
@@ -242,11 +306,13 @@ button:focus-visible {
 .score-pill {
   min-width: 62px;
   border-radius: 8px;
-  background: var(--accent-soft);
-  color: var(--accent-dark);
+  border: 1px solid rgba(45, 212, 191, 0.34);
+  background: linear-gradient(180deg, rgba(45, 212, 191, 0.22), rgba(45, 212, 191, 0.08));
+  color: #b8fff4;
   padding: 6px 8px;
   text-align: center;
   font-weight: 820;
+  box-shadow: 0 0 28px rgba(45, 212, 191, 0.12);
 }
 
 .summary {
@@ -272,8 +338,9 @@ button:focus-visible {
   align-items: center;
   min-height: 26px;
   border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.055);
   background: var(--panel-soft);
-  color: #33434a;
+  color: #d5e4e2;
   padding: 3px 8px;
   font-size: 0.82rem;
   font-weight: 720;
@@ -282,6 +349,8 @@ button:focus-visible {
 
 .star-text {
   color: var(--warning);
+  background: rgba(246, 195, 106, 0.11);
+  border-color: rgba(246, 195, 106, 0.22);
 }
 
 .key-metrics {
@@ -295,7 +364,7 @@ button:focus-visible {
   padding: 8px;
   border: 1px solid var(--line);
   border-radius: 8px;
-  background: #fbfcfc;
+  background: rgba(5, 11, 13, 0.42);
 }
 
 .mini-metric strong {
@@ -329,12 +398,12 @@ button:focus-visible {
   border: 1px solid var(--line);
   border-left: 4px solid var(--accent);
   border-radius: 8px;
-  background: #fff;
+  background: rgba(14, 24, 28, 0.92);
   padding: 12px;
 }
 
 .notice.error {
-  border-left-color: #c2410c;
+  border-left-color: var(--danger);
 }
 
 .back-button {
@@ -362,9 +431,12 @@ button:focus-visible {
 .source-card {
   min-width: 0;
   padding: 16px;
-  background: #fff;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.028), transparent 52%),
+    var(--panel-strong);
   border: 1px solid var(--line);
   border-radius: 8px;
+  box-shadow: var(--inner-glow);
 }
 
 .detail-section h3,
@@ -387,6 +459,16 @@ button:focus-visible {
   padding-right: 4px;
 }
 
+.source-list a {
+  color: var(--accent-dark);
+  text-decoration-color: rgba(94, 234, 212, 0.32);
+  text-underline-offset: 3px;
+}
+
+.source-list a:hover {
+  color: #ffffff;
+}
+
 .file-row,
 .asset-row {
   display: flex;
@@ -399,6 +481,10 @@ button:focus-visible {
 .file-row code,
 .asset-row code {
   overflow-wrap: anywhere;
+}
+
+code {
+  color: #d8d4ff;
 }
 
 .section-header {
@@ -419,6 +505,15 @@ button:focus-visible {
 
 .organization-card {
   padding: 14px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.028), transparent 50%),
+    var(--panel);
+  transition: border-color 170ms ease, transform 170ms ease;
+}
+
+.organization-card:hover {
+  border-color: var(--line-strong);
+  transform: translateY(-2px);
 }
 
 .org-visual {
@@ -426,6 +521,7 @@ button:focus-visible {
   border-radius: 8px;
   margin-bottom: 12px;
   background: var(--accent-soft);
+  box-shadow: 0 0 28px rgba(45, 212, 191, 0.14);
 }
 
 .table-like {
@@ -439,6 +535,30 @@ button:focus-visible {
   padding: 8px 0;
   text-align: left;
   vertical-align: top;
+}
+
+.table-like th {
+  color: var(--muted);
+  font-weight: 760;
+}
+
+::-webkit-scrollbar {
+  width: 11px;
+  height: 11px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.035);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(94, 234, 212, 0.32);
+  border: 3px solid rgba(8, 13, 16, 0.9);
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(94, 234, 212, 0.52);
 }
 
 @media (max-width: 920px) {
